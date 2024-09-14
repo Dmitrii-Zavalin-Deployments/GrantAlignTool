@@ -1,7 +1,7 @@
 from gpt4all import GPT4All
 
-# Initialize the GPT4All model
-model = GPT4All("gpt4all-lora-quantized")
+# Initialize the GPT4All model with a valid model name
+model = GPT4All("orca-mini-3b-gguf2-q4_0.gguf")
 
 # Sample text
 context = """
