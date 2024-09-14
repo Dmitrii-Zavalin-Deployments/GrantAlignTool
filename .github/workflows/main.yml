@@ -6,6 +6,9 @@ jobs:
   gpt4all-job:
     runs-on: ubuntu-latest
 
+    container:
+      image: nvidia/cuda:11.0-base
+
     steps:
     - name: Checkout repository
       uses: actions/checkout@v2
