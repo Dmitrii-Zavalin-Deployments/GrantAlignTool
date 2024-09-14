@@ -22,5 +22,11 @@ pipe = ExtractiveQAPipeline(reader, retriever)
 
 # Ask a question
 question = "Who started working on self-driving cars at Google in 2007?"
-prediction = pipe.run(query=question, params={"Retriever": {"top_k": 10}, "Reader": {"top_k": 5}})
-print(f"Answer: {prediction['answers'][0].answer}")
+prediction = pipe.run(query=question, params={"Retriever": {"top_k": 20}, "Reader": {"top_k": 10}})
+
+# Print all answers
+if prediction['answers']:
+    for answer in prediction['answers']:
+        print(f"Answer: {answer.answer} (Score: {answer.score})")
+else:
+    print("No answer found.")
