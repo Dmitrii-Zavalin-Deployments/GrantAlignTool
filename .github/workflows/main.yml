@@ -1,0 +1,41 @@
+name: Run Haystack
+
+on: [push]
+
+jobs:
+  haystack-job:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.8'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install farm-haystack
+
+    - name: Run Haystack script
+      run: |
+        python -c "
+        from haystack.nodes import FARMReader, DensePassageRetriever
+        from haystack.pipelines import ExtractiveQAPipeline
+        from haystack.document_stores import InMemoryDocumentStore
+
+        document_store = InMemoryDocumentStore()
+        context = 'When Sebastian Thrun started working on self-driving cars at Google in 2007, few people outside of the company took him seriously.'
+        document_store.write_documents([{'content': context}])
+
+        retriever = DensePassageRetriever(document_store=document_store)
+        reader = FARMReader(model_name_or_path='deepset/roberta-base-squad2')
+        pipe = ExtractiveQAPipeline(reader, retriever)
+
+        question = 'Who started working on self-driving cars at Google in 2007?'
+        prediction = pipe.run(query=question, params={'Retriever': {'top_k': 10}, 'Reader': {'top_k': 5}})
+        print(f'Answer: {prediction['answers'][0].answer}')
+        "
