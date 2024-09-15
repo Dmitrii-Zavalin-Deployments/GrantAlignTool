@@ -1,7 +1,8 @@
 import os
+import datetime
 from extract_text_from_pdf import extract_text_from_pdf
 # from gpt4all_functions import run_gpt4all
-from download_from_dropbox import download_pdfs_from_dropbox
+from download_from_dropbox import download_pdfs_from_dropbox, upload_log_to_dropbox
 
 def main():
     pdf_folder = 'pdfs'
@@ -10,23 +11,35 @@ def main():
     question = "What causes the Northern Lights?"
     data = ""
 
-    # Debugging: Print folder paths
-    print(f"Dropbox folder: {dropbox_folder}")
-    print(f"Local PDF folder: {pdf_folder}")
+    # Create a unique log file name
+    log_file_name = f"log_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"
+    log_file_path = os.path.join(pdf_folder, log_file_name)
 
-    # Download PDFs from Dropbox
-    download_pdfs_from_dropbox(dropbox_folder, pdf_folder, access_token)
+    # Ensure the local folder exists
+    os.makedirs(pdf_folder, exist_ok=True)
 
-    # Extract text from PDFs
-    for filename in os.listdir(pdf_folder):
-        if filename.endswith('.pdf'):
-            file_path = os.path.join(pdf_folder, filename)
-            data += extract_text_from_pdf(file_path)
+    # Open the log file
+    with open(log_file_path, "w") as log_file:
+        # Debugging: Print folder paths
+        log_file.write(f"Dropbox folder: {dropbox_folder}\n")
+        log_file.write(f"Local PDF folder: {pdf_folder}\n")
 
-    print("Data from Dropbox:")
-    print(data)
-    # Run GPT-4 model
-    # run_gpt4all(data, question)
+        # Download PDFs from Dropbox
+        download_pdfs_from_dropbox(dropbox_folder, pdf_folder, access_token, log_file)
+
+        # Extract text from PDFs
+        for filename in os.listdir(pdf_folder):
+            if filename.endswith('.pdf'):
+                file_path = os.path.join(pdf_folder, filename)
+                data += extract_text_from_pdf(file_path)
+
+        log_file.write("Data from Dropbox:\n")
+        log_file.write(data + "\n")
+        # Run GPT-4 model
+        # run_gpt4all(data, question)
+
+    # Upload the log file to Dropbox
+    upload_log_to_dropbox(log_file_path, dropbox_folder, access_token)
 
 if __name__ == "__main__":
     main()
