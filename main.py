@@ -1,7 +1,7 @@
 # main.py
 import os
 from extract_text_from_pdf import extract_text_from_pdf
-from gpt4all_functions import run_gpt4all
+# from gpt4all_functions import run_gpt4all
 from download_from_dropbox import download_pdfs_from_dropbox
 
 def main():
