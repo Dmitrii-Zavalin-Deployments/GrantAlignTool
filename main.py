@@ -5,7 +5,7 @@ from download_from_dropbox import download_pdfs_from_dropbox
 
 def main():
     pdf_folder = 'pdfs'
-    dropbox_folder = 'GrantAlignTool'
+    dropbox_folder = '/GrantAlignTool'
     access_token = os.getenv('DROPBOX_ACCESS_TOKEN')  # Read from environment variable
     question = "What causes the Northern Lights?"
     data = ""
