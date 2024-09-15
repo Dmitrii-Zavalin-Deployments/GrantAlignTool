@@ -1,3 +1,4 @@
+# .github/workflows/main.yml
 name: Run GPT4All
 
 on: [push]
@@ -26,4 +27,6 @@ jobs:
         pip install -r requirements.txt
 
     - name: Run main.py
+      env:
+        DROPBOX_ACCESS_TOKEN: ${{ secrets.DROPBOX_ACCESS_TOKEN }}
       run: python main.py
