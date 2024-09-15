@@ -1,6 +1,8 @@
+# .github/workflows/main.yml
 name: Run GPT4All
 
-on: [push]
+on:
+  workflow_dispatch:  # Allows manual triggering
 
 jobs:
   gpt4all-job:
@@ -26,4 +28,6 @@ jobs:
         pip install -r requirements.txt
 
     - name: Run main.py
+      env:
+        DROPBOX_ACCESS_TOKEN: ${{ secrets.DROPBOX_ACCESS_TOKEN }}  # Use the secret
       run: python main.py
