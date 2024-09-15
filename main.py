@@ -20,8 +20,8 @@ def main():
             file_path = os.path.join(pdf_folder, filename)
             data += extract_text_from_pdf(file_path)
 
-    console.log("Data from Dropbox:")
-    console.log(data)
+    print("Data from Dropbox:")
+    print(data)
     # Run GPT-4 model
     # run_gpt4all(data, question)
 
