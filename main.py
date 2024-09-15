@@ -42,10 +42,13 @@ def main():
     # Upload the log file to Dropbox
     upload_file_to_dropbox(log_file_path, dropbox_folder, access_token)
 
-    # Create results file
-    results_file_path = os.path.join(pdf_folder, "results.txt")
+    # Create results file with a unique name
+    results_file_name = f"result_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"
+    results_file_path = os.path.join(pdf_folder, results_file_name)
     with open(results_file_path, "w") as results_file:
-        results_file.write(f"Answer: {answer}\n")
+        results_file.write(f"Log file: {log_file_name}\n\n")
+        results_file.write("Result:\n")
+        results_file.write(f"{answer}\n")
 
     # Upload the results file to Dropbox
     upload_file_to_dropbox(results_file_path, dropbox_folder, access_token)

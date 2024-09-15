@@ -12,7 +12,7 @@ def ask_question(question, context, log_file):
     print(f"Processed tokens: {token_count}")  # Print the number of tokens to the console
     return response.strip()
 
-# Function to run GPT4All
+# Function to run GPT-4
 def run_gpt4all(context, question, log_file):
     answer = ask_question(question, context, log_file)
     return answer
