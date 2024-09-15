@@ -4,11 +4,12 @@ import os
 
 def download_pdfs_from_dropbox(dropbox_folder, local_folder, access_token):
     dbx = dropbox.Dropbox(access_token)
-    
+    print("1")
     try:
         os.makedirs(local_folder, exist_ok=True)
+        print("2")
         for entry in dbx.files_list_folder(dropbox_folder).entries:
-            print(entry)
+            print("3")
             if isinstance(entry, dropbox.files.FileMetadata) and entry.name.endswith('.pdf'):
                 local_path = os.path.join(local_folder, entry.name)
                 with open(local_path, "wb") as f:
