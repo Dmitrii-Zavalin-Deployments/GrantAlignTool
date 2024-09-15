@@ -1,8 +1,8 @@
 import os
 import datetime
 from extract_text_from_pdf import extract_text_from_pdf
-# from gpt4all_functions import run_gpt4all
-from download_from_dropbox import download_pdfs_from_dropbox, upload_log_to_dropbox
+from download_from_dropbox import download_pdfs_from_dropbox, upload_file_to_dropbox
+from gpt4all_functions import run_gpt4all
 
 def main():
     pdf_folder = 'pdfs'
@@ -36,10 +36,19 @@ def main():
         log_file.write("Data from Dropbox:\n")
         log_file.write(data + "\n")
         # Run GPT-4 model
-        # run_gpt4all(data, question)
+        answer = run_gpt4all(data, question, log_file)
+        log_file.write(f"Answer: {answer}\n")
 
     # Upload the log file to Dropbox
-    upload_log_to_dropbox(log_file_path, dropbox_folder, access_token)
+    upload_file_to_dropbox(log_file_path, dropbox_folder, access_token)
+
+    # Create results file
+    results_file_path = os.path.join(pdf_folder, "results.txt")
+    with open(results_file_path, "w") as results_file:
+        results_file.write(f"Answer: {answer}\n")
+
+    # Upload the results file to Dropbox
+    upload_file_to_dropbox(results_file_path, dropbox_folder, access_token)
 
 if __name__ == "__main__":
     main()
