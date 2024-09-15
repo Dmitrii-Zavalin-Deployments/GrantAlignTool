@@ -1,8 +1,7 @@
 # .github/workflows/main.yml
 name: Run GPT4All
 
-on:
-  workflow_dispatch:  # Allows manual triggering
+on: [push]
 
 jobs:
   gpt4all-job:
