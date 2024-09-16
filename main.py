@@ -8,7 +8,7 @@ from question_builder import build_question
 def main():
     pdf_folder = 'pdfs'
     dropbox_folder = '/GrantAlignTool'
-    projects_folder = os.path.join(dropbox_folder, 'Projects')
+    projects_folder = 'Projects'  # Local folder to store project files
     access_token = os.getenv('DROPBOX_ACCESS_TOKEN')  # Read from environment variable
     data = ""
 
@@ -39,12 +39,14 @@ def main():
         log_file.write("Data from Dropbox:\n")
         log_file.write(data + "\n")
 
+        # Download project files from Dropbox
+        download_pdfs_from_dropbox(os.path.join(dropbox_folder, 'Projects'), projects_folder, access_token, log_file)
+
         # Process each project file
         for project_filename in os.listdir(projects_folder):
-            if project_filename.endswith('.txt'):
+            if project_filename.endswith('.pdf'):
                 project_file_path = os.path.join(projects_folder, project_filename)
-                with open(project_file_path, 'r') as project_file:
-                    project_text = project_file.read()
+                project_text = extract_text_from_pdf(project_file_path)
 
                 # Build the question
                 question = build_question(project_text, data)
