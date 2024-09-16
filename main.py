@@ -8,7 +8,7 @@ from question_builder import build_question
 def main():
     pdf_folder = 'pdfs'
     dropbox_folder = '/GrantAlignTool'
-    projects_folder = '/GrantAlignTool/Projects'
+    projects_folder = os.path.join(dropbox_folder, 'Projects')
     access_token = os.getenv('DROPBOX_ACCESS_TOKEN')  # Read from environment variable
     data = ""
 
@@ -16,14 +16,16 @@ def main():
     log_file_name = f"log_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"
     log_file_path = os.path.join(pdf_folder, log_file_name)
 
-    # Ensure the local folder exists
+    # Ensure the local folders exist
     os.makedirs(pdf_folder, exist_ok=True)
+    os.makedirs(projects_folder, exist_ok=True)
 
     # Open the log file
     with open(log_file_path, "w") as log_file:
         # Debugging: Print folder paths
         log_file.write(f"Dropbox folder: {dropbox_folder}\n")
         log_file.write(f"Local PDF folder: {pdf_folder}\n")
+        log_file.write(f"Projects folder: {projects_folder}\n")
 
         # Download PDFs from Dropbox
         download_pdfs_from_dropbox(dropbox_folder, pdf_folder, access_token, log_file)
