@@ -4,7 +4,7 @@ from gpt4all import GPT4All
 model = GPT4All("orca-mini-3b-gguf2-q4_0.gguf")
 
 # Function to chunk text
-def chunk_text(text, max_tokens=750):
+def chunk_text(text, max_tokens):
     words = text.split()
     chunks = [' '.join(words[i:i + max_tokens]) for i in range(0, len(words), max_tokens)]
     return chunks
@@ -20,8 +20,15 @@ def ask_question(question, context, log_file):
 
 # Function to run GPT-4
 def run_gpt4all(project_text, data, question, log_file):
-    project_chunks = chunk_text(project_text, max_tokens=750)
-    data_chunks = chunk_text(data, max_tokens=750)
+    # Estimate the number of tokens used by the question
+    question_tokens = len(question.split())
+    # Reserve 500 tokens for the model's response
+    reserved_tokens = 500
+    # Calculate the maximum tokens available for each chunk
+    max_tokens_per_chunk = (2048 - question_tokens - reserved_tokens) // 2
+
+    project_chunks = chunk_text(project_text, max_tokens=max_tokens_per_chunk)
+    data_chunks = chunk_text(data, max_tokens=max_tokens_per_chunk)
     
     # Log the number of chunks
     print(f"Project text split into {len(project_chunks)} chunks.")
