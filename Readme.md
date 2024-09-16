@@ -39,6 +39,3 @@ This tool aligns project descriptions with grant requirements using GPT-4All. It
 
 4. **Output**:
     - Results and log files will be uploaded to Dropbox.
-
-## Contact
-For any issues or questions, please contact [your_email@example.com].

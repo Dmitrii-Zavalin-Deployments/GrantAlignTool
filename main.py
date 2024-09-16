@@ -31,10 +31,14 @@ def main():
         download_pdfs_from_dropbox(dropbox_folder, pdf_folder, access_token, log_file)
 
         # Extract text from PDFs
+        pdf_counter = 1
         for filename in os.listdir(pdf_folder):
             if filename.endswith('.pdf'):
                 file_path = os.path.join(pdf_folder, filename)
                 data += extract_text_from_pdf(file_path)
+                # Print the current file number being processed
+                print(f"Processing PDF {pdf_counter}")
+                pdf_counter += 1
 
         log_file.write("Data from Dropbox:\n")
         log_file.write(data + "\n")
@@ -43,6 +47,7 @@ def main():
         download_pdfs_from_dropbox(os.path.join(dropbox_folder, 'Projects'), projects_folder, access_token, log_file)
 
         # Process each project file
+        project_counter = 1
         for project_filename in os.listdir(projects_folder):
             if project_filename.endswith('.pdf'):
                 project_file_path = os.path.join(projects_folder, project_filename)
@@ -60,6 +65,9 @@ def main():
                     log_file.write(f"Answer for question {i} for {project_filename}: {answer}\n")
                     answers.append((i, answer))
 
+                    # Print the current question number being processed
+                    print(f"Processing question {i} for project {project_counter}")
+
                 # Remove the extension from project_filename
                 project_name = os.path.splitext(project_filename)[0]
 
@@ -75,6 +83,10 @@ def main():
 
                 # Upload the results file to Dropbox
                 upload_file_to_dropbox(results_file_path, dropbox_folder, access_token)
+
+                # Print the completion of processing for the current project file
+                print(f"Completed processing for project {project_counter}")
+                project_counter += 1
 
     # Upload the log file to Dropbox
     upload_file_to_dropbox(log_file_path, dropbox_folder, access_token)
