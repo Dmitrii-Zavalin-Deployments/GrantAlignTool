@@ -1,15 +1,13 @@
 def build_questions(project_text, data):
-    base_info = f"This is the project: \"{project_text}\". These are the grant requirements: \"{data}\"."
-    
     questions = [
-        f"{base_info} How does this project align with these grant requirements? Explain your decision.",
-        f"{base_info} With what aspects of the grant requirements does this project align?",
-        f"{base_info} With what aspects of the grant requirements does this project not align?",
-        f"{base_info} How good is the overall alignment of this project with the grant requirements?",
-        f"{base_info} What percentage does this project align with these grant requirements?",
-        f"{base_info} What should be added to this project description to maximize alignment with the grant requirements without making major changes? Provide the updated project description.",
-        f"{base_info} What is the percentage of alignment of the updated project description with the grant requirements?",
-        f"{base_info} Is it worth spending time to prepare the grant application for this grant for both the original and updated project descriptions, or is it better to skip this grant?"
+        f"How does the project \"{project_text}\" meet the grant requirements \"{data}\"? Explain your decision.",
+        f"What aspects of the project \"{project_text}\" fulfill the grant requirements \"{data}\"?",
+        f"What aspects of the project \"{project_text}\" fail to meet the grant requirements \"{data}\"?",
+        f"How well does the project \"{project_text}\" match the grant requirements \"{data}\" overall?",
+        f"What percentage does the project \"{project_text}\" meet the grant requirements \"{data}\"?",
+        f"What should be added to the project \"{project_text}\" to maximize its match with the grant requirements \"{data}\" without making major changes? Provide the updated project description.",
+        f"What is the percentage of match of the updated project description with the grant requirements \"{data}\"?",
+        f"Is it worth spending time to prepare the grant application for the project \"{project_text}\" for both the original and updated descriptions, or is it better to skip this grant?"
     ]
     
     return questions
