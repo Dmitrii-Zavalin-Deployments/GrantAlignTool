@@ -3,7 +3,7 @@ import datetime
 from extract_text_from_pdf import extract_text_from_pdf
 from download_from_dropbox import download_pdfs_from_dropbox, upload_file_to_dropbox
 from gpt4all_functions import run_gpt4all
-from question_builder import build_question
+from question_builder import build_questions
 
 def main():
     pdf_folder = 'pdfs'
@@ -48,13 +48,17 @@ def main():
                 project_file_path = os.path.join(projects_folder, project_filename)
                 project_text = extract_text_from_pdf(project_file_path)
 
-                # Build the question
-                question = build_question(project_text, data)
-                log_file.write(f"Built question for {project_filename}: {question}\n")
+                # Build the questions
+                questions = build_questions(project_text, data)
+                answers = []
 
-                # Run GPT-4 model
-                answer = run_gpt4all(data, question, log_file)
-                log_file.write(f"Answer for {project_filename}: {answer}\n")
+                for i, question in enumerate(questions, 1):
+                    log_file.write(f"Built question {i} for {project_filename}: {question}\n")
+
+                    # Run GPT-4 model
+                    answer = run_gpt4all(data, question, log_file)
+                    log_file.write(f"Answer for question {i} for {project_filename}: {answer}\n")
+                    answers.append((i, answer))
 
                 # Remove the extension from project_filename
                 project_name = os.path.splitext(project_filename)[0]
@@ -64,8 +68,10 @@ def main():
                 results_file_path = os.path.join(pdf_folder, results_file_name)
                 with open(results_file_path, "w") as results_file:
                     results_file.write(f"Log file: {log_file_name}\n\n")
-                    results_file.write("Result:\n")
-                    results_file.write(f"{answer}\n")
+                    results_file.write("Results:\n")
+                    for i, answer in answers:
+                        results_file.write(f"Question {i}:\n")
+                        results_file.write(f"Answer: {answer}\n\n")
 
                 # Upload the results file to Dropbox
                 upload_file_to_dropbox(results_file_path, dropbox_folder, access_token)
