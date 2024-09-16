@@ -61,7 +61,7 @@ def main():
                     log_file.write(f"Built question {i} for {project_filename}: {question}\n")
 
                     # Run GPT-4 model
-                    answer = run_gpt4all(data, question, log_file)
+                    answer = run_gpt4all(project_text, data, question, log_file)
                     log_file.write(f"Answer for question {i} for {project_filename}: {answer}\n")
                     answers.append((i, answer))
 
