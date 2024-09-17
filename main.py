@@ -57,7 +57,8 @@ def main():
         log_file.write(data + "\n")
 
         # Download project files from Dropbox
-        download_pdfs_from_dropbox(os.path.join(dropbox_folder, 'Projects'), projects_folder, access_token, log_file)
+        file_list_path = 'file_list.txt'  # Path to the file list in the same directory as main.py
+        download_pdfs_from_dropbox(os.path.join(dropbox_folder, 'Projects'), projects_folder, access_token, log_file, file_list_path)
 
         # Process each project file
         project_counter = 1
@@ -107,16 +108,11 @@ def main():
                     results_file.write(f"Log file: {log_file_name}\n\n")
                     results_file.write("Summary:\n")
                     results_file.write(summary + "\n\n")
-                    results_file.write("Detailed Answers:\n")
-                    for i, answer in enumerate(all_answers, 1):
-                        results_file.write(f"Question {i}:\n")
-                        results_file.write(f"Answer: {answer}\n\n")
                     results_file.write("Grouped Answers:\n")
                     for j, answers in enumerate(grouped_answers, 1):
                         results_file.write(f"Question Type {j}:\n")
-                        for answer in answers:
-                            results_file.write(f"Answer: {answer}\n")
-                        results_file.write("\n")
+                        grouped_summary = summarize_text(' '.join(answers))
+                        results_file.write(f"{grouped_summary}\n\n")
 
                 # Upload the results file to Dropbox
                 upload_file_to_dropbox(results_file_path, dropbox_folder, access_token)
