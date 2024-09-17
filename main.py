@@ -5,10 +5,10 @@ from download_from_dropbox import download_pdfs_from_dropbox, upload_file_to_dro
 from gpt4all_functions import run_gpt4all
 from question_builder import build_questions
 
-def summarize_text(text):
+def summarize_text(text, max_sentences=10):
     # Simple summarization function (you can replace this with a more advanced summarization model if needed)
     sentences = text.split('. ')
-    summary = '. '.join(sentences[:5])  # Take the first 5 sentences as a summary
+    summary = '. '.join(sentences[:max_sentences])  # Take the first 10 sentences as a summary
     return summary
 
 def main():
@@ -62,6 +62,7 @@ def main():
                 # Build the questions
                 questions = build_questions(project_text, data)
                 all_answers = []
+                combined_answers = ""
 
                 for i, question in enumerate(questions, 1):
                     log_file.write(f"Built question {i} for {project_filename}: {question}\n")
@@ -70,12 +71,16 @@ def main():
                     answer = run_gpt4all(question, log_file)
                     log_file.write(f"Answer for question {i} for {project_filename}: {answer}\n")
                     all_answers.append(answer)
+                    combined_answers += " " + answer
 
                     # Print the current question number being processed
                     print(f"Processing question {i} for project {project_counter}")
 
-                # Summarize all answers
-                combined_answers = ' '.join(all_answers)
+                    # Summarize if there are more than 10 sentences
+                    if (i % 10 == 0):
+                        combined_answers = summarize_text(combined_answers)
+
+                # Final summarization
                 summary = summarize_text(combined_answers)
 
                 # Remove the extension from project_filename
