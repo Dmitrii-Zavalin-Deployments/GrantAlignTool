@@ -27,6 +27,14 @@ def run_gpt4all(project_text, data, question, log_file):
     # Calculate the maximum tokens available for each chunk
     max_tokens_per_chunk = (2048 - question_tokens - reserved_tokens) // 2
 
+    # Debugging: Print lengths and max_tokens_per_chunk
+    print(f"Length of project_text: {len(project_text.split())} tokens")
+    print(f"Length of data: {len(data.split())} tokens")
+    print(f"Max tokens per chunk: {max_tokens_per_chunk}")
+    log_file.write(f"Length of project_text: {len(project_text.split())} tokens\n")
+    log_file.write(f"Length of data: {len(data.split())} tokens\n")
+    log_file.write(f"Max tokens per chunk: {max_tokens_per_chunk}\n")
+
     project_chunks = chunk_text(project_text, max_tokens=max_tokens_per_chunk)
     data_chunks = chunk_text(data, max_tokens=max_tokens_per_chunk)
     
