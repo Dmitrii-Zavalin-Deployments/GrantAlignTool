@@ -1,15 +1,11 @@
-from transformers import GPT2Tokenizer
 from gpt4all import GPT4All
 
 # Initialize the GPT-4All model with a valid model name
 model = GPT4All("orca-mini-3b-gguf2-q4_0.gguf")
 
-# Initialize the tokenizer
-tokenizer = GPT2Tokenizer.from_pretrained("gpt2")
-
 # Function to calculate the number of tokens
 def calculate_tokens(text):
-    tokens = tokenizer.encode(text)
+    tokens = text.split()
     return len(tokens)
 
 # Function to chunk text
