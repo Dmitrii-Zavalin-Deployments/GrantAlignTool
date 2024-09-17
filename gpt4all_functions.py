@@ -4,7 +4,7 @@ from gpt4all import GPT4All
 model = GPT4All("orca-mini-3b-gguf2-q4_0.gguf")
 
 # Function to chunk text
-def chunk_text(text, max_tokens):
+def chunk_text(text, max_tokens=750):
     words = text.split()
     chunks = [' '.join(words[i:i + max_tokens]) for i in range(0, len(words), max_tokens)]
     return chunks
@@ -24,8 +24,8 @@ def run_gpt4all(project_text, data, question, log_file):
     question_without_context = question.replace("{project_text}", "").replace("{data}", "")
     question_tokens = len(question_without_context.split())
     
-    # Calculate the maximum tokens available for each chunk
-    max_tokens_per_chunk = (2048 - question_tokens) // 2 - 1
+    # Fixed chunk size
+    max_tokens_per_chunk = 750
 
     # Debugging: Print lengths and max_tokens_per_chunk
     print(f"Length of project_text: {len(project_text.split())} tokens")
