@@ -20,12 +20,12 @@ def ask_question(question, context, log_file):
 
 # Function to run GPT-4
 def run_gpt4all(project_text, data, question, log_file):
-    # Estimate the number of tokens used by the question
-    question_tokens = len(question.split())
-    # Reserve 500 tokens for the model's response
-    reserved_tokens = 500
+    # Calculate the number of tokens in the question without project_text and data
+    question_without_context = question.replace("{project_text}", "").replace("{data}", "")
+    question_tokens = len(question_without_context.split())
+    
     # Calculate the maximum tokens available for each chunk
-    max_tokens_per_chunk = (2048 - question_tokens - reserved_tokens) // 2
+    max_tokens_per_chunk = (2048 - question_tokens) // 2 - 1
 
     # Debugging: Print lengths and max_tokens_per_chunk
     print(f"Length of project_text: {len(project_text.split())} tokens")
