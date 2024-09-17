@@ -1,9 +1,13 @@
-import nltk
-nltk.download('punkt')
-from nltk.tokenize import sent_tokenize
+import re
+
+def split_into_sentences(text):
+    # Regular expression to split text into sentences
+    sentence_endings = re.compile(r'(?<!\w\.\w.)(?<![A-Z][a-z]\.)(?<=\.|\?)\s')
+    sentences = sentence_endings.split(text)
+    return [s.strip() for s in sentences if s.strip()]
 
 def build_questions(project_text, data):
-    sentences = sent_tokenize(data)
+    sentences = split_into_sentences(data)
     questions = []
 
     for sentence in sentences:

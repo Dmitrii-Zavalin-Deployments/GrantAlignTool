@@ -5,6 +5,12 @@ from download_from_dropbox import download_pdfs_from_dropbox, upload_file_to_dro
 from gpt4all_functions import run_gpt4all
 from question_builder import build_questions
 
+def summarize_text(text):
+    # Simple summarization function (you can replace this with a more advanced summarization model if needed)
+    sentences = text.split('. ')
+    summary = '. '.join(sentences[:5])  # Take the first 5 sentences as a summary
+    return summary
+
 def main():
     pdf_folder = 'pdfs'
     dropbox_folder = '/GrantAlignTool'
@@ -55,7 +61,7 @@ def main():
 
                 # Build the questions
                 questions = build_questions(project_text, data)
-                answers = []
+                all_answers = []
 
                 for i, question in enumerate(questions, 1):
                     log_file.write(f"Built question {i} for {project_filename}: {question}\n")
@@ -63,10 +69,14 @@ def main():
                     # Run GPT-4 model
                     answer = run_gpt4all(project_text, data, question, log_file)
                     log_file.write(f"Answer for question {i} for {project_filename}: {answer}\n")
-                    answers.append((i, answer))
+                    all_answers.append(answer)
 
                     # Print the current question number being processed
                     print(f"Processing question {i} for project {project_counter}")
+
+                # Summarize all answers
+                combined_answers = ' '.join(all_answers)
+                summary = summarize_text(combined_answers)
 
                 # Remove the extension from project_filename
                 project_name = os.path.splitext(project_filename)[0]
@@ -76,8 +86,10 @@ def main():
                 results_file_path = os.path.join(pdf_folder, results_file_name)
                 with open(results_file_path, "w") as results_file:
                     results_file.write(f"Log file: {log_file_name}\n\n")
-                    results_file.write("Results:\n")
-                    for i, answer in answers:
+                    results_file.write("Summary:\n")
+                    results_file.write(summary + "\n\n")
+                    results_file.write("Detailed Answers:\n")
+                    for i, answer in enumerate(all_answers, 1):
                         results_file.write(f"Question {i}:\n")
                         results_file.write(f"Answer: {answer}\n\n")
 
