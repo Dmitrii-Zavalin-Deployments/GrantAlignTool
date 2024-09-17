@@ -4,8 +4,8 @@ from gpt4all import GPT4All
 model = GPT4All("orca-mini-3b-gguf2-q4_0.gguf")
 
 # Function to ask questions
-def ask_question(question, context, log_file):
-    prompt = f"Context: {context}\n\nQuestion: {question}\nAnswer:"
+def ask_question(question, log_file):
+    prompt = f"{question}\nAnswer:"
     response = model.generate(prompt, max_tokens=500)  # Set max_tokens to 500
     token_count = len(response.split())
     log_file.write(f"Processed tokens: {token_count}\n")  # Log the number of tokens to the file
@@ -13,6 +13,6 @@ def ask_question(question, context, log_file):
     return response.strip()
 
 # Function to run GPT-4
-def run_gpt4all(context, question, log_file):
-    answer = ask_question(question, context, log_file)
+def run_gpt4all(question, log_file):
+    answer = ask_question(question, log_file)
     return answer
