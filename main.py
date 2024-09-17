@@ -6,9 +6,16 @@ from gpt4all_functions import run_gpt4all
 from question_builder import build_questions
 
 def summarize_text(text, max_sentences=10):
-    # Simple summarization function (you can replace this with a more advanced summarization model if needed)
+    # Improved summarization function
     sentences = text.split('. ')
-    summary = '. '.join(sentences[:max_sentences])  # Take the first 10 sentences as a summary
+    if len(sentences) <= max_sentences:
+        return text
+    # Adjust the number of sentences dynamically based on the length of the text
+    if len(sentences) > 50:
+        max_sentences = 15
+    elif len(sentences) > 100:
+        max_sentences = 20
+    summary = '. '.join(sentences[:max_sentences])
     return summary
 
 def main():
@@ -64,6 +71,9 @@ def main():
                 all_answers = []
                 combined_answers = ""
 
+                # Initialize lists for each question type
+                grouped_answers = [[] for _ in range(8)]
+
                 for i, question in enumerate(questions, 1):
                     log_file.write(f"Built question {i} for {project_filename}: {question}\n")
 
@@ -72,6 +82,10 @@ def main():
                     log_file.write(f"Answer for question {i} for {project_filename}: {answer}\n")
                     all_answers.append(answer)
                     combined_answers += " " + answer
+
+                    # Group answers by question type
+                    question_type_index = (i - 1) % 8  # 8 is the number of question options from question_builder.py
+                    grouped_answers[question_type_index].append(answer)
 
                     # Print the current question number being processed
                     print(f"Processing question {i} for project {project_counter}")
@@ -97,6 +111,12 @@ def main():
                     for i, answer in enumerate(all_answers, 1):
                         results_file.write(f"Question {i}:\n")
                         results_file.write(f"Answer: {answer}\n\n")
+                    results_file.write("Grouped Answers:\n")
+                    for j, answers in enumerate(grouped_answers, 1):
+                        results_file.write(f"Question Type {j}:\n")
+                        for answer in answers:
+                            results_file.write(f"Answer: {answer}\n")
+                        results_file.write("\n")
 
                 # Upload the results file to Dropbox
                 upload_file_to_dropbox(results_file_path, dropbox_folder, access_token)
