@@ -6,7 +6,7 @@ print_separator() {
 }
 
 # Print the initial message
-echo "Run the script from the auxiliary_scripts folder within the core directory of GrantAlignTool-Thread2."
+echo "Run the script from the auxiliary_scripts folder within the core directory of GrantAlignTool."
 print_separator
 
 # Ask the user to enter the path to the SSH key file
@@ -25,18 +25,13 @@ start=1
 end=15
 
 # Define the local repository to copy from
-local_repo="../GrantAlignTool-Thread2"
+local_repo="../GrantAlignTool"
 
 # Define your GitHub username
 github_username="Dmitrii-Zavalin-Deployments"
 
 # Loop through the range of repositories
 for i in $(seq $start $end); do
-    # Skip the local repository
-    if [ "$i" -eq 2 ]; then
-        continue
-    fi
-
     # Define the repository name
     repo_name="${base_repo}${i}"
 
