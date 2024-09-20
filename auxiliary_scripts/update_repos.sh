@@ -25,7 +25,7 @@ start=1
 end=15
 
 # Define the local repository to copy from
-local_repo="../GrantAlignTool"
+local_repo="../../GrantAlignTool"
 
 # Define your GitHub username
 github_username="Dmitrii-Zavalin-Deployments"
