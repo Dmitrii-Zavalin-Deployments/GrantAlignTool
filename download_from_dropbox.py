@@ -1,7 +1,25 @@
 import dropbox
 import os
+import requests
 
-def download_pdfs_from_dropbox(dropbox_folder, local_folder, access_token, log_file, file_list_path=None):
+# Function to refresh the access token
+def refresh_access_token(refresh_token, client_id, client_secret):
+    url = "https://api.dropbox.com/oauth2/token"
+    data = {
+        "grant_type": "refresh_token",
+        "refresh_token": refresh_token,
+        "client_id": client_id,
+        "client_secret": client_secret
+    }
+    response = requests.post(url, data=data)
+    if response.status_code == 200:
+        return response.json()["access_token"]
+    else:
+        raise Exception("Failed to refresh access token")
+
+def download_pdfs_from_dropbox(dropbox_folder, local_folder, refresh_token, client_id, client_secret, log_file, file_list_path=None):
+    # Refresh the access token
+    access_token = refresh_access_token(refresh_token, client_id, client_secret)
     dbx = dropbox.Dropbox(access_token)
     log_file.write("1\n")
     try:
@@ -33,7 +51,9 @@ def download_pdfs_from_dropbox(dropbox_folder, local_folder, access_token, log_f
     except Exception as e:
         log_file.write(f"Unexpected error: {e}\n")
 
-def upload_file_to_dropbox(local_file_path, dropbox_folder, access_token):
+def upload_file_to_dropbox(local_file_path, dropbox_folder, refresh_token, client_id, client_secret):
+    # Refresh the access token
+    access_token = refresh_access_token(refresh_token, client_id, client_secret)
     dbx = dropbox.Dropbox(access_token)
     with open(local_file_path, "rb") as f:
         dbx.files_upload(f.read(), os.path.join(dropbox_folder, os.path.basename(local_file_path)), mode=dropbox.files.WriteMode.overwrite)

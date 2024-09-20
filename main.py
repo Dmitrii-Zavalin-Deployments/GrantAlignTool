@@ -1,16 +1,29 @@
 import os
 import datetime
+import requests
 from extract_text_from_pdf import extract_text_from_pdf
 from download_from_dropbox import download_pdfs_from_dropbox, upload_file_to_dropbox
 from gpt4all_functions import run_gpt4all
 from question_builder import build_questions
 
+def refresh_access_token(refresh_token, client_id, client_secret):
+    url = "https://api.dropbox.com/oauth2/token"
+    data = {
+        "grant_type": "refresh_token",
+        "refresh_token": refresh_token,
+        "client_id": client_id,
+        "client_secret": client_secret
+    }
+    response = requests.post(url, data=data)
+    if response.status_code == 200:
+        return response.json()["access_token"]
+    else:
+        raise Exception("Failed to refresh access token")
+
 def summarize_text(text, max_sentences=10):
-    # Improved summarization function
     sentences = text.split('. ')
     if len(sentences) <= max_sentences:
         return text
-    # Adjust the number of sentences dynamically based on the length of the text
     if len(sentences) > 50:
         max_sentences = 15
     elif len(sentences) > 100:
@@ -22,11 +35,19 @@ def main():
     pdf_folder = 'pdfs'
     dropbox_folder = '/GrantAlignTool'
     projects_folder = 'Projects'  # Local folder to store project files
-    access_token = os.getenv('DROPBOX_ACCESS_TOKEN')  # Read from environment variable
+
+    # Fetch secrets from environment variables
+    client_id = os.getenv('DROPBOX_APP_KEY')
+    client_secret = os.getenv('DROPBOX_APP_SECRET')
+    refresh_token = os.getenv('DROPBOX_REFRESH_TOKEN')
+    repo_name = os.getenv('REPO_NAME').split('/')[-1]  # Get the repository name
+
+    # Refresh the access token
+    access_token = refresh_access_token(refresh_token, client_id, client_secret)
     data = ""
 
     # Create a unique log file name
-    log_file_name = f"log_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"
+    log_file_name = f"log_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}_{repo_name}.txt"
     log_file_path = os.path.join(pdf_folder, log_file_name)
 
     # Ensure the local folders exist
@@ -40,15 +61,16 @@ def main():
         log_file.write(f"Local PDF folder: {pdf_folder}\n")
         log_file.write(f"Projects folder: {projects_folder}\n")
 
-        # Download PDFs from Dropbox
-        download_pdfs_from_dropbox(dropbox_folder, pdf_folder, access_token, log_file)
+        # Download PDFs from Dropbox (GrantAlignTool)
+        grant_pages_path = 'grant_pages.txt'  # Path to the grant pages list in the same directory as main.py
+        download_pdfs_from_dropbox(dropbox_folder, pdf_folder, refresh_token, client_id, client_secret, log_file, grant_pages_path)
 
         # Extract text from PDFs
         pdf_counter = 1
         for filename in os.listdir(pdf_folder):
             if filename.endswith('.pdf'):
                 file_path = os.path.join(pdf_folder, filename)
-                data += extract_text_from_pdf(file_path)
+                data += extract_text_from_pdf(file_path) + " "  # Add a space between texts
                 # Print the current file number being processed
                 print(f"Processing PDF {pdf_counter}")
                 pdf_counter += 1
@@ -58,7 +80,7 @@ def main():
 
         # Download project files from Dropbox
         file_list_path = 'file_list.txt'  # Path to the file list in the same directory as main.py
-        download_pdfs_from_dropbox(os.path.join(dropbox_folder, 'Projects'), projects_folder, access_token, log_file, file_list_path)
+        download_pdfs_from_dropbox(os.path.join(dropbox_folder, 'Projects'), projects_folder, refresh_token, client_id, client_secret, log_file, file_list_path)
 
         # Process each project file
         project_counter = 1
@@ -102,7 +124,7 @@ def main():
                 project_name = os.path.splitext(project_filename)[0]
 
                 # Create results file with a unique name
-                results_file_name = f"result_{project_name}_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"
+                results_file_name = f"result_{project_name}_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}_{repo_name}.txt"
                 results_file_path = os.path.join(pdf_folder, results_file_name)
                 with open(results_file_path, "w") as results_file:
                     results_file.write(f"Log file: {log_file_name}\n\n")
@@ -115,14 +137,14 @@ def main():
                         results_file.write(f"{grouped_summary}\n\n")
 
                 # Upload the results file to Dropbox
-                upload_file_to_dropbox(results_file_path, dropbox_folder, access_token)
+                upload_file_to_dropbox(results_file_path, dropbox_folder, refresh_token, client_id, client_secret)
 
                 # Print the completion of processing for the current project file
                 print(f"Completed processing for project {project_counter}")
                 project_counter += 1
 
     # Upload the log file to Dropbox
-    upload_file_to_dropbox(log_file_path, dropbox_folder, access_token)
+    upload_file_to_dropbox(log_file_path, dropbox_folder, refresh_token, client_id, client_secret)
 
 if __name__ == "__main__":
     main()
