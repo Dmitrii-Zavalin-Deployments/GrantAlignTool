@@ -9,10 +9,10 @@ print_separator() {
 install_required_packages() {
     packages=("curl" "jq")
     for package in "${packages[@]}"; do
-        if ! dpkg -l | grep -q $package; then
+        if ! command -v $package &> /dev/null; then
             echo "Installing $package..."
             sudo apt-get update
-            sudo apt-get install -y $package
+            sudo apt-get install -y -f $package
         else
             echo "$package is already installed."
         fi
