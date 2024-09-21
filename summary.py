@@ -22,6 +22,20 @@ def refresh_access_token(refresh_token, client_id, client_secret):
         print(error_message)
         raise Exception(error_message)
 
+def list_all_files(dbx, folder_path, log_file):
+    files = []
+    try:
+        result = dbx.files_list_folder(folder_path)
+        files.extend(result.entries)
+        while result.has_more:
+            result = dbx.files_list_folder_continue(result.cursor)
+            files.extend(result.entries)
+    except dropbox.exceptions.ApiError as err:
+        error_message = f"Error listing files: {err}"
+        print(error_message)
+        log_file.write(f"{error_message}\n")
+    return files
+
 def download_files_from_dropbox(folder_path, local_path, refresh_token, client_id, client_secret, log_file):
     # Refresh the access token
     access_token = refresh_access_token(refresh_token, client_id, client_secret)
@@ -33,23 +47,11 @@ def download_files_from_dropbox(folder_path, local_path, refresh_token, client_i
         print(f"Local path '{local_path}' ensured.")
         log_file.write("2\n")
 
-        # Retry mechanism
-        retries = 3
-        for attempt in range(retries):
-            try:
-                result = dbx.files_list_folder(folder_path)
-                print(f"Listing files in Dropbox folder: {folder_path}")
-                log_file.write(f"Listing files in Dropbox folder: {folder_path}\n")
-                break
-            except dropbox.exceptions.ApiError as err:
-                if attempt < retries - 1:
-                    print(f"Error listing files, retrying... ({attempt + 1}/{retries})")
-                    log_file.write(f"Error listing files, retrying... ({attempt + 1}/{retries})\n")
-                    time.sleep(2)
-                else:
-                    raise err
+        files = list_all_files(dbx, folder_path, log_file)
+        print(f"Listing files in Dropbox folder: {folder_path}")
+        log_file.write(f"Listing files in Dropbox folder: {folder_path}\n")
 
-        for entry in result.entries:
+        for entry in files:
             print(f"Found entry: {entry.name} ({entry.path_lower})")
             log_file.write(f"Found entry: {entry.name} ({entry.path_lower})\n")
             if isinstance(entry, dropbox.files.FileMetadata) and entry.name.endswith('.txt') and 'result' in entry.name:
