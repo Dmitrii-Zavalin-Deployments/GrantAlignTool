@@ -127,6 +127,11 @@ def main():
         # Download result files from Dropbox
         download_files_from_dropbox(dropbox_folder, summary_folder, access_token, log_file)
 
+        # Debugging: List files in the summary folder
+        log_message = f"Files in {summary_folder}: {os.listdir(summary_folder)}\n"
+        log_file.write(log_message)
+        print(log_message)
+
         # Combine texts from all result files
         log_data_dicts = {}
         summary_dict = {}
