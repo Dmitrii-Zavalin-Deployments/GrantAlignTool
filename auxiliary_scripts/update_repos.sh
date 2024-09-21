@@ -18,10 +18,10 @@ print_separator
 # Define the base repository name and the range of repositories
 base_repo="GrantAlignTool-Thread"
 start=1
-end=15
+end=1
 
 # Get the local repository path from the argument
-local_repo="$1"
+local_repo="GrantAlignTool"
 
 # Define your GitHub username
 github_username="Dmitrii-Zavalin-Deployments"
@@ -45,7 +45,7 @@ for i in $(seq $start $end); do
 
     # Change to the repository directory
     cd ${repo_name}
-
+    
     # Check if the repository is empty
     if [ -z "$(ls -A .)" ]; then
         echo "Repository ${repo_name} is empty. Creating initial commit..."
@@ -65,13 +65,18 @@ for i in $(seq $start $end); do
 
     # Delete all files and folders except .git
     echo "Deleting all files and folders except .git..."
-    find . -mindepth 1 -not -name '.git' -exec rm -rf {} +
+    rm -rf *
+    rm -rf .github
+    rm -rf .git
 
     # Copy the contents from the local repository to the cloned repository, excluding the .git directory and the repo_name directory
     echo "Copying files from ${local_repo} to ${repo_name}..."
-    rsync -av --exclude=".git" --exclude="${repo_name}" ${local_repo}/ .
+    cp -r ../${local_repo}/* .
+    cp -r ../${local_repo}/.github .
+    cp -r ../${local_repo}/.git .
 
     # Add, commit, and push the changes
+    echo "$(pwd)"
     echo "Adding files to ${repo_name}..."
     git add .
     echo "Committing changes in ${repo_name}..."
