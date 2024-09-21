@@ -99,6 +99,9 @@ def main():
     client_secret = os.getenv('DROPBOX_APP_SECRET')
     refresh_token = os.getenv('DROPBOX_REFRESH_TOKEN')
 
+    # Refresh the access token
+    access_token = refresh_access_token(refresh_token, client_id, client_secret)
+
     # Ensure the local folder exists
     os.makedirs(summary_folder, exist_ok=True)
 
