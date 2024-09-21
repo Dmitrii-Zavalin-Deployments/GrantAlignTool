@@ -1,6 +1,7 @@
 import os
 import datetime
 import requests
+import dropbox
 
 def refresh_access_token(refresh_token, client_id, client_secret):
     url = "https://api.dropbox.com/oauth2/token"
@@ -16,46 +17,30 @@ def refresh_access_token(refresh_token, client_id, client_secret):
     else:
         raise Exception("Failed to refresh access token")
 
-def download_files_from_dropbox(folder_path, local_path, access_token, log_file):
-    url = "https://api.dropboxapi.com/2/files/list_folder"
-    headers = {
-        "Authorization": f"Bearer {access_token}",
-        "Content-Type": "application/json"
-    }
-    data = {
-        "path": folder_path
-    }
-    response = requests.post(url, headers=headers, json=data)
-    if response.status_code != 200:
-        log_message = "Failed to list files in Dropbox folder\n"
-        log_file.write(log_message)
-        print(log_message)
-        raise Exception(log_message)
+def download_files_from_dropbox(folder_path, local_path, refresh_token, client_id, client_secret, log_file):
+    # Refresh the access token
+    access_token = refresh_access_token(refresh_token, client_id, client_secret)
+    dbx = dropbox.Dropbox(access_token)
+    log_file.write("1\n")
+    try:
+        os.makedirs(local_path, exist_ok=True)
+        log_file.write("2\n")
+        result = dbx.files_list_folder(folder_path)
+        log_file.write(f"Listing files in Dropbox folder: {folder_path}\n")
 
-    files = response.json().get('entries', [])
-    log_message = f"Files in Dropbox folder: {files}\n"
-    log_file.write(log_message)
-    print(log_message)
-
-    for file in files:
-        if file['.tag'] == 'file' and 'result' in file['name'] and file['name'].endswith('.txt'):
-            download_url = "https://content.dropboxapi.com/2/files/download"
-            headers = {
-                "Authorization": f"Bearer {access_token}",
-                "Dropbox-API-Arg": f'{{"path": "{file["path_lower"]}"}}'
-            }
-            response = requests.post(download_url, headers=headers)
-            if response.status_code == 200:
-                local_file_path = os.path.join(local_path, file['name'])
-                with open(local_file_path, 'wb') as f:
-                    f.write(response.content)
-                log_message = f"Downloaded {file['name']} to {local_file_path}\n"
-                log_file.write(log_message)
-                print(log_message)
-            else:
-                log_message = f"Failed to download {file['name']}\n"
-                log_file.write(log_message)
-                print(log_message)
+        for entry in result.entries:
+            log_file.write(f"Found entry: {entry.name}\n")
+            if isinstance(entry, dropbox.files.FileMetadata) and entry.name.endswith('.txt') and 'result' in entry.name:
+                local_file_path = os.path.join(local_path, entry.name)
+                with open(local_file_path, "wb") as f:
+                    metadata, res = dbx.files_download(path=entry.path_lower)
+                    f.write(res.content)
+                log_file.write(f"Downloaded {entry.name} to {local_file_path}\n")
+        log_file.write("Download completed.\n")
+    except dropbox.exceptions.ApiError as err:
+        log_file.write(f"Error downloading files: {err}\n")
+    except Exception as e:
+        log_file.write(f"Unexpected error: {e}\n")
 
 def upload_file_to_dropbox(local_file_path, dropbox_folder, access_token, log_file):
     url = "https://content.dropboxapi.com/2/files/upload"
@@ -114,9 +99,6 @@ def main():
     client_secret = os.getenv('DROPBOX_APP_SECRET')
     refresh_token = os.getenv('DROPBOX_REFRESH_TOKEN')
 
-    # Refresh the access token
-    access_token = refresh_access_token(refresh_token, client_id, client_secret)
-
     # Ensure the local folder exists
     os.makedirs(summary_folder, exist_ok=True)
 
@@ -129,7 +111,7 @@ def main():
         print(log_message)
 
         # Download result files from Dropbox
-        download_files_from_dropbox(dropbox_folder, summary_folder, access_token, log_file)
+        download_files_from_dropbox(dropbox_folder, summary_folder, refresh_token, client_id, client_secret, log_file)
 
         # Debugging: List files in the summary folder
         log_message = f"Files in {summary_folder}: {os.listdir(summary_folder)}\n"
