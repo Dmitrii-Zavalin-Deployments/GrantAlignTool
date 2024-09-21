@@ -50,8 +50,8 @@ def download_files_from_dropbox(folder_path, local_path, refresh_token, client_i
                     raise err
 
         for entry in result.entries:
-            print(f"Found entry: {entry.name}")
-            log_file.write(f"Found entry: {entry.name}\n")
+            print(f"Found entry: {entry.name} ({entry.path_lower})")
+            log_file.write(f"Found entry: {entry.name} ({entry.path_lower})\n")
             if isinstance(entry, dropbox.files.FileMetadata) and entry.name.endswith('.txt') and 'result' in entry.name:
                 local_file_path = os.path.join(local_path, entry.name)
                 with open(local_file_path, "wb") as f:
