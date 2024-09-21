@@ -33,6 +33,10 @@ def download_files_from_dropbox(folder_path, local_path, access_token, log_file)
         raise Exception(log_message)
 
     files = response.json().get('entries', [])
+    log_message = f"Files in Dropbox folder: {files}\n"
+    log_file.write(log_message)
+    print(log_message)
+
     for file in files:
         if file['.tag'] == 'file' and 'result' in file['name'] and file['name'].endswith('.txt'):
             download_url = "https://content.dropboxapi.com/2/files/download"
