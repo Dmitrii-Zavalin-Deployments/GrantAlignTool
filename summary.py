@@ -2,6 +2,7 @@ import os
 import datetime
 import requests
 import dropbox
+import time
 
 def refresh_access_token(refresh_token, client_id, client_secret):
     url = "https://api.dropbox.com/oauth2/token"
@@ -31,9 +32,22 @@ def download_files_from_dropbox(folder_path, local_path, refresh_token, client_i
         os.makedirs(local_path, exist_ok=True)
         print(f"Local path '{local_path}' ensured.")
         log_file.write("2\n")
-        result = dbx.files_list_folder(folder_path)
-        print(f"Listing files in Dropbox folder: {folder_path}")
-        log_file.write(f"Listing files in Dropbox folder: {folder_path}\n")
+
+        # Retry mechanism
+        retries = 3
+        for attempt in range(retries):
+            try:
+                result = dbx.files_list_folder(folder_path)
+                print(f"Listing files in Dropbox folder: {folder_path}")
+                log_file.write(f"Listing files in Dropbox folder: {folder_path}\n")
+                break
+            except dropbox.exceptions.ApiError as err:
+                if attempt < retries - 1:
+                    print(f"Error listing files, retrying... ({attempt + 1}/{retries})")
+                    log_file.write(f"Error listing files, retrying... ({attempt + 1}/{retries})\n")
+                    time.sleep(2)
+                else:
+                    raise err
 
         for entry in result.entries:
             print(f"Found entry: {entry.name}")
