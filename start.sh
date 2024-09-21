@@ -144,7 +144,7 @@ for ((i=0; i<num_runs; i++)); do
     echo "Updating grant_pages.txt and file_list.txt in $repo_dir..."
     grant_pages_file="$repo_dir/grant_pages.txt"
     file_list_file="$repo_dir/file_list.txt"
-    echo "${run_files_no_ext[@]}" > "$grant_pages_file"
+    printf "%s\n" "${run_files_no_ext[@]}" > "$grant_pages_file"
     echo "$project_name" > "$file_list_file"
     print_separator
 
