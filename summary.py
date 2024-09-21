@@ -16,7 +16,7 @@ def refresh_access_token(refresh_token, client_id, client_secret):
     else:
         raise Exception("Failed to refresh access token")
 
-def download_files_from_dropbox(folder_path, local_path, access_token):
+def download_files_from_dropbox(folder_path, local_path, access_token, log_file):
     url = "https://api.dropboxapi.com/2/files/list_folder"
     headers = {
         "Authorization": f"Bearer {access_token}",
@@ -27,6 +27,7 @@ def download_files_from_dropbox(folder_path, local_path, access_token):
     }
     response = requests.post(url, headers=headers, json=data)
     if response.status_code != 200:
+        log_file.write("Failed to list files in Dropbox folder\n")
         raise Exception("Failed to list files in Dropbox folder")
 
     files = response.json().get('entries', [])
@@ -42,11 +43,11 @@ def download_files_from_dropbox(folder_path, local_path, access_token):
                 local_file_path = os.path.join(local_path, file['name'])
                 with open(local_file_path, 'wb') as f:
                     f.write(response.content)
-                print(f"Downloaded {file['name']} to {local_file_path}")
+                log_file.write(f"Downloaded {file['name']} to {local_file_path}\n")
             else:
-                print(f"Failed to download {file['name']}")
+                log_file.write(f"Failed to download {file['name']}\n")
 
-def upload_file_to_dropbox(local_file_path, dropbox_folder, access_token):
+def upload_file_to_dropbox(local_file_path, dropbox_folder, access_token, log_file):
     url = "https://content.dropboxapi.com/2/files/upload"
     headers = {
         "Authorization": f"Bearer {access_token}",
@@ -56,23 +57,39 @@ def upload_file_to_dropbox(local_file_path, dropbox_folder, access_token):
     with open(local_file_path, 'rb') as f:
         data = f.read()
     response = requests.post(url, headers=headers, data=data)
-    if response.status_code != 200:
+    if response.status_code == 200:
+        log_file.write(f"Uploaded {local_file_path} to Dropbox\n")
+    else:
+        log_file.write(f"Failed to upload {local_file_path} to Dropbox\n")
         raise Exception(f"Failed to upload {local_file_path} to Dropbox")
 
-def group_answers_by_question_type(text):
-    grouped_answers = {}
-    lines = text.split('\n')
-    current_question_type = None
+def parse_log_file(file_path):
+    with open(file_path, 'r') as file:
+        lines = file.readlines()
+
+    log_dict = {}
+    start_parsing = False
+    current_question = None
 
     for line in lines:
-        if line.startswith("Question Type"):
-            current_question_type = line
-            if current_question_type not in grouped_answers:
-                grouped_answers[current_question_type] = []
-        elif current_question_type:
-            grouped_answers[current_question_type].append(line)
+        line = line.strip()
+        if line.startswith("Question Type 1:"):
+            start_parsing = True
+        if start_parsing:
+            if line.startswith("Question Type"):
+                current_question = line.split(": ", 1)[0]
+                log_dict[current_question] = ""
+            elif current_question and line:
+                log_dict[current_question] = line
+                current_question = None
 
-    return grouped_answers
+    return log_dict
+
+def write_summary_to_file(summary_dict, output_file, num_files):
+    with open(output_file, 'w') as file:
+        file.write(f"Grouped Answers from {num_files} result files\n\n")
+        for question_type, answer in summary_dict.items():
+            file.write(f"{question_type}\n{answer}\n\n")
 
 def main():
     dropbox_folder = '/GrantAlignTool'
@@ -89,49 +106,49 @@ def main():
     # Ensure the local folder exists
     os.makedirs(summary_folder, exist_ok=True)
 
-    # Download result files from Dropbox
-    download_files_from_dropbox(dropbox_folder, summary_folder, access_token)
-
-    # Combine texts from all result files
-    grouped_answers = {}
-    result_files = [f for f in os.listdir(summary_folder) if 'result' in f and f.endswith('.txt')]
-    for result_file in result_files:
-        with open(os.path.join(summary_folder, result_file), 'r') as file:
-            text = file.read()
-            file_grouped_answers = group_answers_by_question_type(text)
-            for question_type, answers in file_grouped_answers.items():
-                if question_type not in grouped_answers:
-                    grouped_answers[question_type] = []
-                grouped_answers[question_type].extend(answers)
-
     # Create a log file
     log_file_name = f"log_summary_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"
     log_file_path = os.path.join(summary_folder, log_file_name)
     with open(log_file_path, 'w') as log_file:
         log_file.write("Log file created.\n")
 
-    # Read the content of file_list.txt from the same directory as summary.py
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    file_list_path = os.path.join(script_dir, 'file_list.txt')
-    if not os.path.exists(file_list_path):
-        raise FileNotFoundError(f"{file_list_path} not found. Please ensure the file exists.")
+        # Download result files from Dropbox
+        download_files_from_dropbox(dropbox_folder, summary_folder, access_token, log_file)
 
-    with open(file_list_path, 'r') as file_list:
-        file_list_content = file_list.read().strip()
+        # Combine texts from all result files
+        log_data_dicts = {}
+        summary_dict = {}
+        result_files = [f for f in os.listdir(summary_folder) if 'result' in f and f.endswith('.txt')]
+        for result_file in result_files:
+            file_path = os.path.join(summary_folder, result_file)
+            log_data_dicts[result_file] = parse_log_file(file_path)
 
-    # Create the final summary file with the number of result files in the name
-    final_summary_file_name = f"{file_list_content}_project_grant_alignment_summary_{len(result_files)}.txt"
-    final_summary_file_path = os.path.join(summary_folder, final_summary_file_name)
-    with open(final_summary_file_path, 'w') as final_summary_file:
-        final_summary_file.write(f"Grouped Answers from {len(result_files)} result files\n\n")
-        for question_type, answers in grouped_answers.items():
-            final_summary_file.write(f"{question_type}:\n")
-            for answer in answers:
-                final_summary_file.write(f"{answer}\n")
-            final_summary_file.write("\n")
+        # Combine dictionaries into a summary dictionary
+        for file_path, log_data in log_data_dicts.items():
+            for question_type, answer in log_data.items():
+                if question_type in summary_dict:
+                    summary_dict[question_type] += " " + answer
+                else:
+                    summary_dict[question_type] = answer
 
-    # Upload the final summary file to Dropbox
-    upload_file_to_dropbox(final_summary_file_path, dropbox_folder, access_token)
+        # Read the content of file_list.txt from the same directory as summary.py
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        file_list_path = os.path.join(script_dir, 'file_list.txt')
+        if not os.path.exists(file_list_path):
+            log_file.write(f"{file_list_path} not found. Please ensure the file exists.\n")
+            raise FileNotFoundError(f"{file_list_path} not found. Please ensure the file exists.")
+
+        with open(file_list_path, 'r') as file_list:
+            file_list_content = file_list.read().strip()
+
+        # Create the final summary file with the number of result files in the name
+        final_summary_file_name = f"{file_list_content}_project_grant_alignment_summary_{len(result_files)}.txt"
+        final_summary_file_path = os.path.join(summary_folder, final_summary_file_name)
+        write_summary_to_file(summary_dict, final_summary_file_path, len(result_files))
+        log_file.write(f"Summary written to {final_summary_file_path}\n")
+
+        # Upload the final summary file to Dropbox
+        upload_file_to_dropbox(final_summary_file_path, dropbox_folder, access_token, log_file)
 
 if __name__ == "__main__":
     main()
