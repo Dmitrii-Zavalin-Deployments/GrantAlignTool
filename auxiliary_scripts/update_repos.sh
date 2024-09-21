@@ -18,7 +18,7 @@ print_separator
 # Define the base repository name and the range of repositories
 base_repo="GrantAlignTool-Thread"
 start=1
-end=1
+end=15
 
 # Get the local repository path from the argument
 local_repo="GrantAlignTool"
@@ -67,13 +67,11 @@ for i in $(seq $start $end); do
     echo "Deleting all files and folders except .git..."
     rm -rf *
     rm -rf .github
-    rm -rf .git
 
     # Copy the contents from the local repository to the cloned repository, excluding the .git directory and the repo_name directory
     echo "Copying files from ${local_repo} to ${repo_name}..."
     cp -r ../${local_repo}/* .
     cp -r ../${local_repo}/.github .
-    cp -r ../${local_repo}/.git .
 
     # Add, commit, and push the changes
     echo "$(pwd)"

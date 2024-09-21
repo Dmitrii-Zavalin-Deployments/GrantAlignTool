@@ -25,7 +25,7 @@ print_separator
 
 # Clean up by removing the temporary script
 echo "Cleaning up the temporary script..."
-#rm update_repos.sh
+rm update_repos.sh
 print_separator
 
 echo "All repositories have been updated."
