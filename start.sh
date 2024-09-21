@@ -73,6 +73,10 @@ print_separator
 # Split the project names into an array
 IFS=',' read -r -a project_names_array <<< "$project_names"
 
+# Log the project names array
+echo "Project names array: ${project_names_array[@]}"
+print_separator
+
 # Ask the user to enter the number of runs or use default value 15
 read -p "Enter the number of runs (default is 15): " num_runs
 num_runs=${num_runs:-15}
@@ -150,8 +154,12 @@ for ((i=0; i<num_runs; i++)); do
     printf "%s\n" "${run_files_no_ext[@]}" > "$grant_pages_file"
     for project_name in "${project_names_array[@]}"; do
         project_name=$(echo "$project_name" | xargs)  # Trim any leading/trailing whitespace
+        echo "Processing project name: $project_name"
         if ! grep -qx "$project_name" "$file_list_file"; then
+            echo "Adding project name to file_list.txt: $project_name"
             echo "$project_name" >> "$file_list_file"
+        else
+            echo "Project name already exists in file_list.txt: $project_name"
         fi
     done
     print_separator
