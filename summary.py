@@ -27,8 +27,10 @@ def download_files_from_dropbox(folder_path, local_path, access_token, log_file)
     }
     response = requests.post(url, headers=headers, json=data)
     if response.status_code != 200:
-        log_file.write("Failed to list files in Dropbox folder\n")
-        raise Exception("Failed to list files in Dropbox folder")
+        log_message = "Failed to list files in Dropbox folder\n"
+        log_file.write(log_message)
+        print(log_message)
+        raise Exception(log_message)
 
     files = response.json().get('entries', [])
     for file in files:
@@ -43,9 +45,13 @@ def download_files_from_dropbox(folder_path, local_path, access_token, log_file)
                 local_file_path = os.path.join(local_path, file['name'])
                 with open(local_file_path, 'wb') as f:
                     f.write(response.content)
-                log_file.write(f"Downloaded {file['name']} to {local_file_path}\n")
+                log_message = f"Downloaded {file['name']} to {local_file_path}\n"
+                log_file.write(log_message)
+                print(log_message)
             else:
-                log_file.write(f"Failed to download {file['name']}\n")
+                log_message = f"Failed to download {file['name']}\n"
+                log_file.write(log_message)
+                print(log_message)
 
 def upload_file_to_dropbox(local_file_path, dropbox_folder, access_token, log_file):
     url = "https://content.dropboxapi.com/2/files/upload"
@@ -58,10 +64,14 @@ def upload_file_to_dropbox(local_file_path, dropbox_folder, access_token, log_fi
         data = f.read()
     response = requests.post(url, headers=headers, data=data)
     if response.status_code == 200:
-        log_file.write(f"Uploaded {local_file_path} to Dropbox\n")
+        log_message = f"Uploaded {local_file_path} to Dropbox\n"
+        log_file.write(log_message)
+        print(log_message)
     else:
-        log_file.write(f"Failed to upload {local_file_path} to Dropbox\n")
-        raise Exception(f"Failed to upload {local_file_path} to Dropbox")
+        log_message = f"Failed to upload {local_file_path} to Dropbox\n"
+        log_file.write(log_message)
+        print(log_message)
+        raise Exception(log_message)
 
 def parse_log_file(file_path):
     with open(file_path, 'r') as file:
@@ -110,7 +120,9 @@ def main():
     log_file_name = f"log_summary_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"
     log_file_path = os.path.join(summary_folder, log_file_name)
     with open(log_file_path, 'w') as log_file:
-        log_file.write("Log file created.\n")
+        log_message = "Log file created.\n"
+        log_file.write(log_message)
+        print(log_message)
 
         # Download result files from Dropbox
         download_files_from_dropbox(dropbox_folder, summary_folder, access_token, log_file)
@@ -119,7 +131,9 @@ def main():
         log_data_dicts = {}
         summary_dict = {}
         result_files = [f for f in os.listdir(summary_folder) if 'result' in f and f.endswith('.txt')]
-        log_file.write(f"Found {len(result_files)} result files.\n")
+        log_message = f"Found {len(result_files)} result files.\n"
+        log_file.write(log_message)
+        print(log_message)
         for result_file in result_files:
             file_path = os.path.join(summary_folder, result_file)
             log_data_dicts[result_file] = parse_log_file(file_path)
@@ -136,8 +150,10 @@ def main():
         script_dir = os.path.dirname(os.path.abspath(__file__))
         file_list_path = os.path.join(script_dir, 'file_list.txt')
         if not os.path.exists(file_list_path):
-            log_file.write(f"{file_list_path} not found. Please ensure the file exists.\n")
-            raise FileNotFoundError(f"{file_list_path} not found. Please ensure the file exists.")
+            log_message = f"{file_list_path} not found. Please ensure the file exists.\n"
+            log_file.write(log_message)
+            print(log_message)
+            raise FileNotFoundError(log_message)
 
         with open(file_list_path, 'r') as file_list:
             file_list_content = file_list.read().strip()
@@ -146,7 +162,9 @@ def main():
         final_summary_file_name = f"{file_list_content}_project_grant_alignment_summary_{len(result_files)}.txt"
         final_summary_file_path = os.path.join(summary_folder, final_summary_file_name)
         write_summary_to_file(summary_dict, final_summary_file_path, len(result_files))
-        log_file.write(f"Summary written to {final_summary_file_path}\n")
+        log_message = f"Summary written to {final_summary_file_path}\n"
+        log_file.write(log_message)
+        print(log_message)
 
         # Upload the final summary file to Dropbox
         upload_file_to_dropbox(final_summary_file_path, dropbox_folder, access_token, log_file)
