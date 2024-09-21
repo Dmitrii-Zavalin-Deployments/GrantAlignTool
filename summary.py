@@ -15,11 +15,9 @@ def refresh_access_token(refresh_token, client_id, client_secret):
     response = requests.post(url, data=data)
     if response.status_code == 200:
         access_token = response.json()["access_token"]
-        print("Access token refreshed successfully.")
         return access_token
     else:
         error_message = "Failed to refresh access token"
-        print(error_message)
         raise Exception(error_message)
 
 def list_all_files(dbx, folder_path, log_file):
@@ -32,7 +30,6 @@ def list_all_files(dbx, folder_path, log_file):
             files.extend(result.entries)
     except dropbox.exceptions.ApiError as err:
         error_message = f"Error listing files: {err}"
-        print(error_message)
         log_file.write(f"{error_message}\n")
     return files
 
@@ -40,36 +37,28 @@ def download_files_from_dropbox(folder_path, local_path, refresh_token, client_i
     # Refresh the access token
     access_token = refresh_access_token(refresh_token, client_id, client_secret)
     dbx = dropbox.Dropbox(access_token)
-    print("Dropbox client initialized.")
-    log_file.write("1\n")
+    log_file.write("Dropbox client initialized.\n")
     try:
         os.makedirs(local_path, exist_ok=True)
-        print(f"Local path '{local_path}' ensured.")
-        log_file.write("2\n")
+        log_file.write(f"Local path '{local_path}' ensured.\n")
 
         files = list_all_files(dbx, folder_path, log_file)
-        print(f"Listing files in Dropbox folder: {folder_path}")
         log_file.write(f"Listing files in Dropbox folder: {folder_path}\n")
 
         for entry in files:
-            print(f"Found entry: {entry.name} ({entry.path_lower})")
             log_file.write(f"Found entry: {entry.name} ({entry.path_lower})\n")
             if isinstance(entry, dropbox.files.FileMetadata) and entry.name.endswith('.txt') and 'result' in entry.name:
                 local_file_path = os.path.join(local_path, entry.name)
                 with open(local_file_path, "wb") as f:
                     metadata, res = dbx.files_download(path=entry.path_lower)
                     f.write(res.content)
-                print(f"Downloaded {entry.name} to {local_file_path}")
                 log_file.write(f"Downloaded {entry.name} to {local_file_path}\n")
-        print("Download completed.")
         log_file.write("Download completed.\n")
     except dropbox.exceptions.ApiError as err:
         error_message = f"Error downloading files: {err}"
-        print(error_message)
         log_file.write(f"{error_message}\n")
     except Exception as e:
         error_message = f"Unexpected error: {e}"
-        print(error_message)
         log_file.write(f"{error_message}\n")
 
 def upload_file_to_dropbox(local_file_path, dropbox_folder, access_token, log_file):
@@ -84,11 +73,9 @@ def upload_file_to_dropbox(local_file_path, dropbox_folder, access_token, log_fi
     response = requests.post(url, headers=headers, data=data)
     if response.status_code == 200:
         log_message = f"Uploaded {local_file_path} to Dropbox"
-        print(log_message)
         log_file.write(log_message + "\n")
     else:
         log_message = f"Failed to upload {local_file_path} to Dropbox"
-        print(log_message)
         log_file.write(log_message + "\n")
         raise Exception(log_message)
 
@@ -134,14 +121,12 @@ def main():
 
     # Ensure the local folder exists
     os.makedirs(summary_folder, exist_ok=True)
-    print(f"Local summary folder '{summary_folder}' ensured.")
 
     # Create a log file
-    log_file_name = f"log_summary_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"
+    log_file_name = f"log_summary_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}_{len(result_files)}.txt"
     log_file_path = os.path.join(summary_folder, log_file_name)
     with open(log_file_path, 'w') as log_file:
         log_message = "Log file created."
-        print(log_message)
         log_file.write(log_message + "\n")
 
         # Download result files from Dropbox
@@ -150,7 +135,6 @@ def main():
         # Debugging: List files in the summary folder
         files_in_summary = os.listdir(summary_folder)
         log_message = f"Files in {summary_folder}: {files_in_summary}"
-        print(log_message)
         log_file.write(log_message + "\n")
 
         # Combine texts from all result files
@@ -158,7 +142,6 @@ def main():
         summary_dict = {}
         result_files = [f for f in files_in_summary if 'result' in f and f.endswith('.txt')]
         log_message = f"Found {len(result_files)} result files."
-        print(log_message)
         log_file.write(log_message + "\n")
         for result_file in result_files:
             file_path = os.path.join(summary_folder, result_file)
@@ -177,7 +160,6 @@ def main():
         file_list_path = os.path.join(script_dir, 'file_list.txt')
         if not os.path.exists(file_list_path):
             log_message = f"{file_list_path} not found. Please ensure the file exists."
-            print(log_message)
             log_file.write(log_message + "\n")
             raise FileNotFoundError(log_message)
 
@@ -189,11 +171,13 @@ def main():
         final_summary_file_path = os.path.join(summary_folder, final_summary_file_name)
         write_summary_to_file(summary_dict, final_summary_file_path, len(result_files))
         log_message = f"Summary written to {final_summary_file_path}"
-        print(log_message)
         log_file.write(log_message + "\n")
 
         # Upload the final summary file to Dropbox
         upload_file_to_dropbox(final_summary_file_path, dropbox_folder, access_token, log_file)
+
+        # Upload the log file to Dropbox
+        upload_file_to_dropbox(log_file_path, dropbox_folder, access_token, log_file)
 
 if __name__ == "__main__":
     main()
