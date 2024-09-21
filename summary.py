@@ -34,7 +34,7 @@ def download_files_from_dropbox(folder_path, local_path, access_token, log_file)
 
     files = response.json().get('entries', [])
     for file in files:
-        if file['.tag'] == 'file':
+        if file['.tag'] == 'file' and 'result' in file['name'] and file['name'].endswith('.txt'):
             download_url = "https://content.dropboxapi.com/2/files/download"
             headers = {
                 "Authorization": f"Bearer {access_token}",
