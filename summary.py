@@ -119,6 +119,7 @@ def main():
         log_data_dicts = {}
         summary_dict = {}
         result_files = [f for f in os.listdir(summary_folder) if 'result' in f and f.endswith('.txt')]
+        log_file.write(f"Found {len(result_files)} result files.\n")
         for result_file in result_files:
             file_path = os.path.join(summary_folder, result_file)
             log_data_dicts[result_file] = parse_log_file(file_path)
