@@ -1,4 +1,0 @@
-gpt4all
-pdfplumber
-dropbox
-transformers

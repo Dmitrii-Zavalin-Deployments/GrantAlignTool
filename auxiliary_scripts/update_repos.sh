@@ -63,9 +63,13 @@ for i in $(seq $start $end); do
         git pull origin master
     fi
 
-    # Copy the contents from the local repository to the cloned repository, excluding the target repo directory
+    # Delete all files and folders except .git
+    echo "Deleting all files and folders except .git..."
+    find . -mindepth 1 -not -name '.git' -exec rm -rf {} +
+
+    # Copy the contents from the local repository to the cloned repository, excluding the .git directory and the repo_name directory
     echo "Copying files from ${local_repo} to ${repo_name}..."
-    rsync -av --exclude="${repo_name}" ${local_repo}/ .
+    rsync -av --exclude=".git" --exclude="${repo_name}" ${local_repo}/ .
 
     # Add, commit, and push the changes
     echo "Adding files to ${repo_name}..."
