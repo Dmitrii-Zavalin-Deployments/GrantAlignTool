@@ -66,9 +66,12 @@ read -p "Enter Dropbox App Secret (client_secret): " client_secret
 read -p "Enter Dropbox Refresh Token (refresh_token): " refresh_token
 print_separator
 
-# Ask the user to enter the project name from the Projects folder
-read -p "Enter the name (without extension) of the project from the Projects folder: " project_name
+# Ask the user to enter project names from the Projects folder
+read -p "Enter the names (without extension) of the projects from the Projects folder, separated by commas (e.g., 'project1' for one project or 'project1, project2' for two projects): " project_names
 print_separator
+
+# Split the project names into an array
+IFS=',' read -r -a project_names_array <<< "$project_names"
 
 # Ask the user to enter the number of runs or use default value 15
 read -p "Enter the number of runs (default is 15): " num_runs
@@ -145,7 +148,10 @@ for ((i=0; i<num_runs; i++)); do
     grant_pages_file="$repo_dir/grant_pages.txt"
     file_list_file="$repo_dir/file_list.txt"
     printf "%s\n" "${run_files_no_ext[@]}" > "$grant_pages_file"
-    echo "$project_name" > "$file_list_file"
+    for project_name in "${project_names_array[@]}"; do
+        project_name=$(echo "$project_name" | xargs)  # Trim any leading/trailing whitespace
+        echo "$project_name" >> "$file_list_file"
+    done
     print_separator
 
     # Push the changes to the repository
