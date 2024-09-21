@@ -5,10 +5,6 @@ print_separator() {
     echo "----------------------------------------"
 }
 
-# Print the initial message
-echo "Run the script from the auxiliary_scripts folder within the core directory of GrantAlignTool."
-print_separator
-
 # Ask the user to enter the path to the SSH key file
 read -p "Enter the path to your SSH key file: " ssh_key_path
 print_separator
@@ -24,8 +20,8 @@ base_repo="GrantAlignTool-Thread"
 start=1
 end=15
 
-# Define the local repository to copy from
-local_repo="../../GrantAlignTool"
+# Get the local repository path from the argument
+local_repo="$1"
 
 # Define your GitHub username
 github_username="Dmitrii-Zavalin-Deployments"
@@ -61,12 +57,15 @@ for i in $(seq $start $end); do
     else
         # Ensure we are on the master branch
         git checkout master
+
+        # Pull the latest changes from the remote repository
+        echo "Pulling latest changes from the remote repository..."
+        git pull origin master
     fi
 
-    # Copy the contents from the local repository to the cloned repository
+    # Copy the contents from the local repository to the cloned repository, excluding the target repo directory
     echo "Copying files from ${local_repo} to ${repo_name}..."
-    cp -r ${local_repo}/* .
-    cp -r ${local_repo}/.github .
+    rsync -av --exclude="${repo_name}" ${local_repo}/ .
 
     # Add, commit, and push the changes
     echo "Adding files to ${repo_name}..."
