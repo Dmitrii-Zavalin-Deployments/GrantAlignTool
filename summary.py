@@ -123,7 +123,7 @@ def main():
     os.makedirs(summary_folder, exist_ok=True)
 
     # Create a log file
-    log_file_name = f"log_summary_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}_{len(result_files)}.txt"
+    log_file_name = f"log_summary_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"
     log_file_path = os.path.join(summary_folder, log_file_name)
     with open(log_file_path, 'w') as log_file:
         log_message = "Log file created."
