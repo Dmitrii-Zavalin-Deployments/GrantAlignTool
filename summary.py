@@ -173,13 +173,13 @@ def main():
         log_message = f"Summary written to {final_summary_file_path}"
         log_file.write(log_message + "\n")
 
+        # Upload the final summary file to Dropbox
+        upload_file_to_dropbox(final_summary_file_path, dropbox_folder, access_token, log_file)
+
         # Ensure the log file is flushed and closed before uploading
         log_file.flush()
         os.fsync(log_file.fileno())
         log_file.close()
-
-        # Upload the final summary file to Dropbox
-        upload_file_to_dropbox(final_summary_file_path, dropbox_folder, access_token, log_file)
 
         # Upload the log file to Dropbox
         upload_file_to_dropbox(log_file_path, dropbox_folder, access_token, open(log_file_path, 'a'))
