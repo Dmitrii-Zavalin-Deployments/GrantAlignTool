@@ -150,7 +150,9 @@ for ((i=0; i<num_runs; i++)); do
     printf "%s\n" "${run_files_no_ext[@]}" > "$grant_pages_file"
     for project_name in "${project_names_array[@]}"; do
         project_name=$(echo "$project_name" | xargs)  # Trim any leading/trailing whitespace
-        echo "$project_name" >> "$file_list_file"
+        if ! grep -qx "$project_name" "$file_list_file"; then
+            echo "$project_name" >> "$file_list_file"
+        fi
     done
     print_separator
 
