@@ -5,7 +5,12 @@ print_separator() {
     echo "----------------------------------------"
 }
 
-echo "Run this script from the local computer"
+echo "Run this script locally after all GitHub jobs finish"
+print_separator
+
+# Set the current working directory of this script into a variable
+script_dir="$(pwd)"
+echo "Script directory: $script_dir"
 print_separator
 
 # Ask the user to enter the path to the local GrantAlignTool folder
@@ -59,6 +64,23 @@ for txt_file in *result*.txt; do
             print_separator
         fi
     done
+done
+
+# Get the absolute path to summary.py
+summary_script_path="$script_dir/summary.py"
+
+# Navigate to the Results folder
+cd Results || { echo "Results folder not found. Exiting."; exit 1; }
+print_separator
+
+# Loop through all folders in the Results folder and run summary.py
+for dir in */; do
+    if [ -d "$dir" ]; then
+        abs_dir_path="$grantaligntool_path/Results/$dir"
+        echo "Running summary.py for directory: $abs_dir_path"
+        python3 "$summary_script_path" "$abs_dir_path"
+        print_separator
+    fi
 done
 
 echo "All tasks completed successfully!"
