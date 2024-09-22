@@ -5,65 +5,11 @@ print_separator() {
     echo "----------------------------------------"
 }
 
-# Function to check and install required packages
-install_required_packages() {
-    packages=("curl" "jq")
-    for package in "${packages[@]}"; do
-        if ! command -v $package &> /dev/null; then
-            echo "Installing $package..."
-            sudo apt-get update
-            sudo apt-get install -y -f $package
-        else
-            echo "$package is already installed."
-        fi
-    done
-}
-
-# Function to refresh the access token
-refresh_access_token() {
-    local refresh_token=$1
-    local client_id=$2
-    local client_secret=$3
-    local url="https://api.dropbox.com/oauth2/token"
-    local data="grant_type=refresh_token&refresh_token=$refresh_token&client_id=$client_id&client_secret=$client_secret"
-    local response=$(curl -s -X POST $url -d $data)
-    echo $(echo $response | jq -r '.access_token')
-}
-
-# Function to download PDFs from Dropbox
-download_pdfs_from_dropbox() {
-    local dropbox_folder=$1
-    local local_folder=$2
-    local access_token=$3
-
-    mkdir -p "$local_folder"
-    local result=$(curl -s -X POST https://api.dropboxapi.com/2/files/list_folder \
-        --header "Authorization: Bearer $access_token" \
-        --header "Content-Type: application/json" \
-        --data "{\"path\": \"$dropbox_folder\"}")
-
-    local entries=$(echo $result | jq -c '.entries[]')
-    for entry in $entries; do
-        local name=$(echo $entry | jq -r '.name')
-        local path_lower=$(echo $entry | jq -r '.path_lower')
-        if [[ $name == *.pdf ]]; then
-            curl -s -X POST https://content.dropboxapi.com/2/files/download \
-                --header "Authorization: Bearer $access_token" \
-                --header "Dropbox-API-Arg: {\"path\": \"$path_lower\"}" \
-                --output "$local_folder/$name"
-        fi
-    done
-}
-
-# Check and install required packages
-install_required_packages
+echo "Run this script from the local computer"
 print_separator
 
-# Ask the user to enter Dropbox credentials
-echo "Please enter your Dropbox credentials:"
-read -p "Enter Dropbox App Key (client_id): " client_id
-read -p "Enter Dropbox App Secret (client_secret): " client_secret
-read -p "Enter Dropbox Refresh Token (refresh_token): " refresh_token
+# Ask the user to enter the path to the local GrantAlignTool folder
+read -p "Enter the path to your local GrantAlignTool folder: " grantaligntool_path
 print_separator
 
 # Ask the user to enter project names from the Projects folder
@@ -97,23 +43,7 @@ ssh-add "$ssh_key_path"
 print_separator
 
 # Directory containing the PDF files
-pdf_dir="pdfs"
-dropbox_folder="/GrantAlignTool"
-
-# Ensure the pdfs folder is clean
-echo "Cleaning up the folder $pdf_dir..."
-rm -rf "$pdf_dir"
-print_separator
-
-# Refresh the access token
-echo "Refreshing Dropbox access token..."
-access_token=$(refresh_access_token $refresh_token $client_id $client_secret)
-print_separator
-
-# Download PDFs from Dropbox
-echo "Downloading PDF files from Dropbox folder $dropbox_folder..."
-download_pdfs_from_dropbox $dropbox_folder $pdf_dir $access_token
-print_separator
+pdf_dir="$grantaligntool_path"
 
 # Get all PDF file names from the directory and store them in an array
 echo "Fetching PDF files from $pdf_dir..."
@@ -151,6 +81,8 @@ for ((i=0; i<num_runs; i++)); do
     echo "Updating grant_pages.txt and file_list.txt in $repo_dir..."
     grant_pages_file="$repo_dir/grant_pages.txt"
     file_list_file="$repo_dir/file_list.txt"
+    echo "Deleting the content of the file_list.txt..."
+    > "$file_list_file"
     printf "%s\n" "${run_files_no_ext[@]}" > "$grant_pages_file"
     for project_name in "${project_names_array[@]}"; do
         project_name=$(echo "$project_name" | xargs)  # Trim any leading/trailing whitespace
@@ -166,6 +98,7 @@ for ((i=0; i<num_runs; i++)); do
 
     # Push the changes to the repository
     echo "Pushing changes to the repository $repo_url..."
+    echo "$repo_dir"
     cd "$repo_dir"
     git add grant_pages.txt file_list.txt
     git commit -m "Update grant_pages.txt and file_list.txt for run $((i+1))"
@@ -178,10 +111,5 @@ for ((i=0; i<num_runs; i++)); do
     rm -rf "$repo_dir"
     print_separator
 done
-
-# Delete the pdfs folder
-echo "Deleting the folder $pdf_dir..."
-rm -rf "$pdf_dir"
-print_separator
 
 echo "All tasks completed successfully!"
