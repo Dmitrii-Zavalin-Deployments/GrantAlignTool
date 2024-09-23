@@ -23,11 +23,23 @@ IFS=',' read -r -a project_names_array <<< "$project_names"
 echo "Project names array: ${project_names_array[@]}"
 print_separator
 
-# Ask the user to enter the number of runs or use default value 15
-read -p "Enter the number of runs (default is 15): " num_runs
-num_runs=${num_runs:-15}
-if [ $num_runs -gt 15 ]; then
-    echo "Error: The number of runs cannot exceed 15."
+# Ask the user to enter the start and end run numbers
+read -p "Enter the start run number (default is 1): " start_run
+start_run=${start_run:-1}
+if [ $start_run -lt 1 ] || [ $start_run -gt 15 ]; then
+    echo "Error: The start run number must be between 1 and 15."
+    exit 1
+fi
+print_separator
+
+read -p "Enter the end run number (default is 15): " end_run
+end_run=${end_run:-15}
+if [ $end_run -lt 1 ] || [ $end_run -gt 15 ]; then
+    echo "Error: The end run number must be between 1 and 15."
+    exit 1
+fi
+if [ $end_run -lt $start_run ]; then
+    echo "Error: The end run number must be greater than or equal to the start run number."
     exit 1
 fi
 print_separator
@@ -53,26 +65,27 @@ print_separator
 
 # Calculate the number of files per run
 num_files=${#pdf_files[@]}
+num_runs=$((end_run - start_run + 1))
 files_per_run=$((num_files / num_runs))
 remainder=$((num_files % num_runs))
 
 # Split the array into the number of runs
 echo "Splitting files into $num_runs runs..."
 start_index=0
-for ((i=0; i<num_runs; i++)); do
+for ((i=start_run; i<=end_run; i++)); do
     end_index=$((start_index + files_per_run))
-    if [ $i -lt $remainder ]; then
+    if [ $((i - start_run)) -lt $remainder ]; then
         end_index=$((end_index + 1))
     fi
     run_files=("${pdf_files[@]:start_index:end_index-start_index}")
     run_files_no_ext=("${run_files[@]%.pdf}")  # Remove the .pdf extension
-    echo "Run $((i+1)) files: ${run_files_no_ext[@]}"
+    echo "Run $i files: ${run_files_no_ext[@]}"
     start_index=$end_index
     print_separator
 
     # Clone the appropriate repository
-    repo_url="git@github.com:Dmitrii-Zavalin-Deployments/GrantAlignTool-Thread$((i+1)).git"
-    repo_dir="GrantAlignTool-Thread$((i+1))"
+    repo_url="git@github.com:Dmitrii-Zavalin-Deployments/GrantAlignTool-Thread$i.git"
+    repo_dir="GrantAlignTool-Thread$i"
     echo "Cloning repository $repo_url..."
     git clone "$repo_url" "$repo_dir"
     print_separator
@@ -101,7 +114,7 @@ for ((i=0; i<num_runs; i++)); do
     echo "$repo_dir"
     cd "$repo_dir"
     git add grant_pages.txt file_list.txt
-    git commit -m "Update grant_pages.txt and file_list.txt for run $((i+1))"
+    git commit -m "Update grant_pages.txt and file_list.txt for run $i"
     git push origin master
     cd ..
     print_separator
