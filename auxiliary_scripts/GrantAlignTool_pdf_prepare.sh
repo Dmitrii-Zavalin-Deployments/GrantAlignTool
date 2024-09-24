@@ -54,13 +54,10 @@ cp $source_path $exchange_path
 # Run the PDFMerge.sh script on the exchange path
 ./PDFMerge.sh "$exchange_path"
 
-# Ask for the name of the PDF file without extension
-read -p "Enter the name of the PDF file (without extension): " pdf_name
+# Define the specific destination path for the merged PDF
+destination_path="${exchange_path}merged.pdf"
 
-# Define the specific destination path for the selected PDF
-destination_path="${exchange_path}${pdf_name}.pdf"
-
-# Check if the specific PDF file exists
+# Check if the merged PDF file exists
 if [[ ! -f "$destination_path" ]]; then
     echo "File not found!"
     exit 1
@@ -87,7 +84,7 @@ EOF
 )
 
 # Save the extracted text to a text file
-text_file_path="${exchange_path}${pdf_name}.txt"
+text_file_path="${exchange_path}merged.txt"
 echo "$extracted_text" > "$text_file_path"
 
 # Move the text file to the Results folder inside GrantAlignTool folder
