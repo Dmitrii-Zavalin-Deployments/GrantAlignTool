@@ -5,6 +5,9 @@ command_exists() {
     command -v "$1" >/dev/null 2>&1
 }
 
+# Add ~/.local/bin to PATH
+export PATH=$PATH:$HOME/.local/bin
+
 # Check if pdftk is installed, if not, install it
 if ! command_exists pdftk; then
     echo "pdftk is not installed. Installing pdftk..."
@@ -29,7 +32,7 @@ fi
 # Check if pdfplumber is installed, if not, install it
 if ! python3 -c "import pdfplumber" &> /dev/null; then
     echo "pdfplumber is not installed. Installing pdfplumber..."
-    pip3 install pdfplumber
+    pip3 install pdfplumber --user
 fi
 
 # Prompt user for the path to the GrantAlignTool folder
