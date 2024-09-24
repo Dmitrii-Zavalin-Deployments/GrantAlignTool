@@ -12,6 +12,19 @@ if ! command_exists pdftk; then
     sudo apt-get install -y pdftk
 fi
 
+# Check if python3 is installed, if not, install it
+if ! command_exists python3; then
+    echo "python3 is not installed. Installing python3..."
+    sudo apt-get update
+    sudo apt-get install -y python3
+fi
+
+# Check if pdfplumber is installed, if not, install it
+if ! python3 -c "import pdfplumber" &> /dev/null; then
+    echo "pdfplumber is not installed. Installing pdfplumber..."
+    pip3 install pdfplumber
+fi
+
 # Prompt user for the path to the GrantAlignTool folder
 read -p "Please enter the path to the GrantAlignTool folder: " grant_align_tool_path
 
@@ -42,6 +55,35 @@ if [[ ! -f "$destination_path" ]]; then
     echo "File not found!"
     exit 1
 fi
+
+# Extract text from the merged PDF
+extracted_text=$(python3 <<EOF
+import pdfplumber
+
+def extract_text_from_pdf(pdf_path):
+    text = ""
+    try:
+        with pdfplumber.open(pdf_path) as pdf:
+            for page in pdf.pages:
+                text += page.extract_text()
+    except Exception as e:
+        print(f"An error occurred: {e}")
+    return text
+
+pdf_path = "$destination_path"
+text = extract_text_from_pdf(pdf_path)
+print(text)
+EOF
+)
+
+# Save the extracted text to a text file
+text_file_path="${exchange_path}${pdf_name}.txt"
+echo "$extracted_text" > "$text_file_path"
+
+# Move the text file to the Results folder inside GrantAlignTool folder
+results_folder="${grant_align_tool_path}/Results/"
+mkdir -p "$results_folder"
+mv "$text_file_path" "$results_folder"
 
 # Run the PDFSplit.sh script on the copied file
 ./PDFSplit.sh "$destination_path"
