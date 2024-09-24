@@ -33,17 +33,13 @@ output_dir=$(dirname "$input_pdf")
 # Get the number of pages in the PDF
 num_pages=$(pdftk "$input_pdf" dump_data | grep NumberOfPages | awk '{print $2}')
 
+# Determine the number of digits needed for zero-padding
+num_digits=${#num_pages}
+
 # Loop through each page and create a separate PDF with leading zeros in the filename
 for i in $(seq 1 $num_pages); do
-    if [ $num_pages -lt 10 ]; then
-        output_pdf="$output_dir/page_000$i.pdf"
-    elif [ $num_pages -lt 100 ]; then
-        output_pdf="$output_dir/page_00$i.pdf"
-    elif [ $num_pages -lt 1000 ]; then
-        output_pdf="$output_dir/page_0$i.pdf"
-    else
-        output_pdf="$output_dir/page_$i.pdf"
-    fi
+    printf -v page_num "%0${num_digits}d" $i
+    output_pdf="$output_dir/page_$page_num.pdf"
     pdftk "$input_pdf" cat $i output "$output_pdf"
     echo "Created $output_pdf"
 done
