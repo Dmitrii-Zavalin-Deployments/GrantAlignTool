@@ -19,6 +19,13 @@ if ! command_exists python3; then
     sudo apt-get install -y python3
 fi
 
+# Check if pip3 is installed, if not, install it
+if ! command_exists pip3; then
+    echo "pip3 is not installed. Installing pip3..."
+    sudo apt-get update
+    sudo apt-get install -y python3-pip
+fi
+
 # Check if pdfplumber is installed, if not, install it
 if ! python3 -c "import pdfplumber" &> /dev/null; then
     echo "pdfplumber is not installed. Installing pdfplumber..."
