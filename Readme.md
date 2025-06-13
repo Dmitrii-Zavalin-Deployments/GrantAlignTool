@@ -6,7 +6,7 @@ This tool aligns project descriptions with grant requirements using GPT-4All. It
 ## Usage
 1. **Prepare PDF files**:
     - **Project Descriptions**: Place PDF files with project descriptions in the Dropbox folder `/GrantAlignTool/Projects`.
-    - **Grant Requirements**: Place PDF files with grant requirements in the Dropbox folder `/GrantAlignTool`.
+    - **Grant Requirements**: Rename PDF files with grant requirements to 1.pdf, 2.pdf, 3.pdf and so on. Place PDF files with grant requirements in the Dropbox folder `/GrantAlignTool`.
 
 2. **Update Dropbox Access Token**:
     - Generate a new Dropbox access token for the needed application from Dropbox Developers: Dropbox Developers.
